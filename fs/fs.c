@@ -15,6 +15,7 @@
 #include <sandboxfs.h>
 #include <ubifs_uboot.h>
 #include <btrfs.h>
+#include <squashfs.h>
 #include <asm/io.h>
 #include <div64.h>
 #include <linux/math64.h>
@@ -272,6 +273,24 @@ static struct fstype_info fstypes[] = {
 		.unlink = fs_unlink_unsupported,
 		.mkdir = fs_mkdir_unsupported,
 		.ln = fs_ln_unsupported,
+	},
+#endif
+#ifdef CONFIG_FS_SQUASHFS
+	{
+		.fstype = FS_TYPE_SQUASHFS,
+		.name = "squashfs",
+		.null_dev_desc_ok = false,
+		.probe = squashfs_probe,
+		.close = squashfs_close,
+		.ls = fs_ls_generic,
+		.exists = squashfs_exists,
+		.size = squashfs_size,
+		.read = squashfs_read,
+		.write = fs_write_unsupported,
+		.uuid = fs_uuid_unsupported,
+		.opendir = squashfs_opendir,
+		.readdir = squashfs_readdir,
+		.closedir = squashfs_closedir,
 	},
 #endif
 	{
