@@ -305,7 +305,7 @@ static int do_setexpr(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	 */
 
 	/* > 6 already tested by max command args */
-	if ((argc < 3) || (argc == 4))
+	if (argc < 3)
 		return CMD_RET_USAGE;
 
 	w = cmd_get_data_size(argv[0], 4);
@@ -330,6 +330,11 @@ static int do_setexpr(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	if (strcmp(argv[2], "sub") == 0)
 		return regex_sub(argv[1], argv[3], argv[4], argv[5], 0);
 #endif
+
+	if (argc == 4 && (strcmp(argv[3], "pad") == 0)) {
+		env_set_hex_padded(argv[1], a, w);
+		return 0;
+	}
 
 	/* standard operators: "setexpr name val1 op val2" */
 	if (argc != 5)

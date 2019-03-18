@@ -326,6 +326,25 @@ int env_set_hex(const char *varname, ulong value)
 	return env_set(varname, str);
 }
 
+int env_set_hex_padded(const char *varname, ulong value, int width)
+{
+	char str[17];
+
+	switch (width) {
+	case 1:
+		sprintf(str, "%02lx", value);
+		break;
+	case 2:
+		sprintf(str, "%04lx", value);
+		break;
+	case 4:
+		sprintf(str, "%08lx", value);
+		break;
+	}
+
+	return env_set(varname, str);
+}
+
 ulong env_get_hex(const char *varname, ulong default_val)
 {
 	const char *s;
