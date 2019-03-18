@@ -339,6 +339,16 @@ int env_set_ulong(const char *varname, ulong value);
 int env_set_hex(const char *varname, ulong value);
 
 /**
+ * env_set_hex_padded() - set an environment variable to a hex value
+ *
+ * @varname: Variable to adjust
+ * @value: Value to set for the variable (will be converted to a hex string)
+ * @width: Width of the variable in bytes
+ * @return 0 if OK, 1 on error
+ */
+int env_set_hex_padded(const char *varname, ulong value, int width);
+
+/**
  * env_set_addr - Set an environment variable to an address in hex
  *
  * @varname:	Environment variable to set

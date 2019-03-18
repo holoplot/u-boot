@@ -331,6 +331,11 @@ static int do_setexpr(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		return regex_sub(argv[1], argv[3], argv[4], argv[5], 0);
 #endif
 
+	if (strcmp(argv[2], "pad") == 0) {
+		env_set_hex_padded(argv[1], a, w);
+		return 0;
+	}
+
 	/* standard operators: "setexpr name val1 op val2" */
 	if (argc != 5)
 		return CMD_RET_USAGE;
