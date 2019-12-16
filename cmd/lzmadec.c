@@ -38,8 +38,10 @@ static int do_lzmadec(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[])
 	ret = lzmaBuffToBuffDecompress(map_sysmem(dst, dst_len), &src_len,
 				       map_sysmem(src, 0), dst_len);
 
-	if (ret != SZ_OK)
-		return 1;
+	if (ret != SZ_OK) {
+    printf("Uncompression failed: %d\n", ret);
+		return ret;
+  }
 	printf("Uncompressed size: %ld = %#lX\n", (ulong)src_len,
 	       (ulong)src_len);
 	env_set_hex("filesize", src_len);
