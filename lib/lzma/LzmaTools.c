@@ -53,11 +53,11 @@ int lzmaBuffToBuffDecompress (unsigned char *outStream, SizeT *uncompressedSize,
     ELzmaStatus state;
     SizeT compressedSize = (SizeT)(length - LZMA_PROPS_SIZE);
 
-    debug ("LZMA: Image address............... 0x%p\n", inStream);
-    debug ("LZMA: Properties address.......... 0x%p\n", inStream + LZMA_PROPERTIES_OFFSET);
-    debug ("LZMA: Uncompressed size address... 0x%p\n", inStream + LZMA_SIZE_OFFSET);
-    debug ("LZMA: Compressed data address..... 0x%p\n", inStream + LZMA_DATA_OFFSET);
-    debug ("LZMA: Destination address......... 0x%p\n", outStream);
+    printf("LZMA: Image address............... 0x%p\n", inStream);
+    printf("LZMA: Properties address.......... 0x%p\n", inStream + LZMA_PROPERTIES_OFFSET);
+    printf("LZMA: Uncompressed size address... 0x%p\n", inStream + LZMA_SIZE_OFFSET);
+    printf("LZMA: Compressed data address..... 0x%p\n", inStream + LZMA_DATA_OFFSET);
+    printf("LZMA: Destination address......... 0x%p\n", outStream);
 
     memset(&state, 0, sizeof(state));
 
@@ -88,13 +88,13 @@ int lzmaBuffToBuffDecompress (unsigned char *outStream, SizeT *uncompressedSize,
          *
          */
         if (outSizeHigh != (SizeT)-1 || outSize != (SizeT)-1) {
-            debug ("LZMA: 64bit support not enabled.\n");
+            printf("LZMA: 64bit support not enabled.\n");
             return SZ_ERROR_DATA;
         }
     }
 
-    debug("LZMA: Uncompresed size............ 0x%zx\n", outSizeFull);
-    debug("LZMA: Compresed size.............. 0x%zx\n", compressedSize);
+    printf("LZMA: Uncompresed size............ 0x%zx\n", outSizeFull);
+    printf("LZMA: Compresed size.............. 0x%zx\n", compressedSize);
 
     g_Alloc.Alloc = SzAlloc;
     g_Alloc.Free = SzFree;
@@ -114,7 +114,7 @@ int lzmaBuffToBuffDecompress (unsigned char *outStream, SizeT *uncompressedSize,
         inStream, LZMA_PROPS_SIZE, LZMA_FINISH_END, &state, &g_Alloc);
     *uncompressedSize = outProcessed;
 
-    debug("LZMA: Uncompressed ............... 0x%zx\n", outProcessed);
+    printf("LZMA: Uncompressed ............... 0x%zx\n", outProcessed);
 
     if (res != SZ_OK)  {
         return res;
