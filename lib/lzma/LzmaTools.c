@@ -87,6 +87,11 @@ int lzmaBuffToBuffDecompress (unsigned char *outStream, SizeT *uncompressedSize,
          * not actually a file of 2^64 bits.
          *
          */
+
+        printf("Outsize: %x\n", outSize);
+        printf("OutsizeFull: %x\n", outSizeFull);
+        printf("OutsizeHigh: %x\n", outSizeHigh);
+
         if (outSizeHigh != (SizeT)-1 || outSize != (SizeT)-1) {
             printf("LZMA: 64bit support not enabled.\n");
             return SZ_ERROR_DATA;
