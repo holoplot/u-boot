@@ -6,7 +6,7 @@
  *
  * Copyright (C) 1999-2005 Igor Pavlov
  *
- * SPDX-License-Identifier:	GPL-2.0+ 
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 /*
@@ -21,6 +21,8 @@
 #include <config.h>
 #include <common.h>
 #include <watchdog.h>
+
+#define DEBUG
 
 #ifdef CONFIG_LZMA
 
