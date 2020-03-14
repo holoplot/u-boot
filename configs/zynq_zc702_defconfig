@@ -166,7 +166,7 @@ CONFIG_BOOT_INIT_FILE=""
 # CONFIG_ARMV7_LPAE is not set
 # CONFIG_CMD_DEKBLOB is not set
 # CONFIG_CMD_HDMIDETECT is not set
-CONFIG_XILINX_PS_INIT_FILE=""
+CONFIG_XILINX_PS_INIT_FILE="/home/daniel/workspace/te0715/ps7_init_gpl.c"
 
 #
 # ARM debug
@@ -397,8 +397,7 @@ CONFIG_CMD_ENV_EXISTS=y
 #
 CONFIG_CMD_CRC32=y
 # CONFIG_CRC32_VERIFY is not set
-CONFIG_CMD_EEPROM=y
-# CONFIG_CMD_EEPROM_LAYOUT is not set
+# CONFIG_CMD_EEPROM is not set
 # CONFIG_LOOPW is not set
 # CONFIG_CMD_MD5SUM is not set
 # CONFIG_CMD_MEMINFO is not set
@@ -439,7 +438,7 @@ CONFIG_CMD_GPIO=y
 # CONFIG_CMD_IDE is not set
 # CONFIG_CMD_IO is not set
 # CONFIG_CMD_IOTRACE is not set
-CONFIG_CMD_I2C=y
+# CONFIG_CMD_I2C is not set
 CONFIG_CMD_LOADB=y
 CONFIG_CMD_LOADS=y
 CONFIG_CMD_MMC=y
@@ -452,7 +451,7 @@ CONFIG_CMD_PART=y
 # CONFIG_CMD_READ is not set
 # CONFIG_CMD_SATA is not set
 # CONFIG_CMD_SAVES is not set
-# CONFIG_CMD_SDRAM is not set
+CONFIG_CMD_SDRAM=y
 CONFIG_CMD_SF=y
 # CONFIG_CMD_SF_TEST is not set
 # CONFIG_CMD_SPI is not set
@@ -757,7 +756,10 @@ CONFIG_ZYNQ_GPIO=y
 #
 # Multifunction device drivers
 #
-# CONFIG_MISC is not set
+CONFIG_MISC=y
+# CONFIG_ALTERA_SYSID is not set
+# CONFIG_ATSHA204A is not set
+# CONFIG_ROCKCHIP_EFUSE is not set
 # CONFIG_CROS_EC is not set
 # CONFIG_DS4510 is not set
 # CONFIG_FSL_SEC_MON is not set
@@ -766,6 +768,8 @@ CONFIG_ZYNQ_GPIO=y
 # CONFIG_PWRSEQ is not set
 # CONFIG_PCA9551_LED is not set
 # CONFIG_WINBOND_W83627 is not set
+# CONFIG_I2C_EEPROM is not set
+# CONFIG_SPL_I2C_EEPROM is not set
 
 #
 # MMC Host controller Support
@@ -1107,6 +1111,18 @@ CONFIG_FS_FAT_MAX_CLUSTSIZE=65536
 # CONFIG_FS_JFFS2 is not set
 CONFIG_FS_CRAMFS=y
 # CONFIG_YAFFS2 is not set
+CONFIG_FS_SQUASHFS=y
+CONFIG_SQUASHFS_ZLIB=y
+CONFIG_SQUASHFS_LZ4=y
+CONFIG_SQUASHFS_LZO=y
+
+#
+# XZ support disabled
+#
+
+#
+# ZSTD support disabled
+#
 
 #
 # Library routines
@@ -1145,9 +1161,9 @@ CONFIG_MD5=y
 #
 # Compression Support
 #
-# CONFIG_LZ4 is not set
-# CONFIG_LZMA is not set
-# CONFIG_LZO is not set
+CONFIG_LZ4=y
+CONFIG_LZMA=y
+CONFIG_LZO=y
 # CONFIG_SPL_LZO is not set
 # CONFIG_SPL_GZIP is not set
 # CONFIG_ERRNO_STR is not set
