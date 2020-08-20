@@ -35,6 +35,13 @@ config LED_BCM6858
 	  This option enables support for LEDs connected to the BCM6858
 	  HW has blinking capabilities and up to 32 LEDs can be controlled.
 
+config LED_TLC591XX
+	bool "LED Support for TI TLC591xx"
+	depends on LED && DM_I2C
+	help
+	  This option enables support for TI TLC591xx LED drivers on I2C
+	  busses.
+
 config LED_BLINK
 	bool "Support LED blinking"
 	depends on LED
