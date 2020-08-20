@@ -200,26 +200,9 @@ static int xilinx_gpio_xlate(struct udevice *dev, struct gpio_desc *desc,
 	debug("%s: argc: %x, [0]: %x, [1]: %x, [2]: %x\n", __func__,
 	      args->args_count, args->args[0], args->args[1], args->args[2]);
 
-	/*
-	 * The second cell is channel offset:
-	 *  0 is first channel, 8 is second channel
-	 *
-	 * U-Boot driver just combine channels together that's why simply
-	 * add amount of pins in second channel if present.
-	 */
-	if (args->args[1]) {
-		if (!platdata->bank_max[1]) {
-			printf("%s: %s has no second channel\n",
-			       __func__, dev->name);
-			return -EINVAL;
-		}
-
-		desc->offset += platdata->bank_max[0];
-	}
-
 	/* The third cell is optional */
-	if (args->args_count > 2)
-		desc->flags = (args->args[2] &
+	if (args->args_count > 1)
+		desc->flags = (args->args[1] &
 			       GPIO_ACTIVE_LOW ? GPIOD_ACTIVE_LOW : 0);
 
 	debug("%s: offset %x, flags %lx\n",
