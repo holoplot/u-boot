@@ -493,6 +493,12 @@ config VIDEO_BROADWELL_IGD
 	  a special tool which configures the VGA ROM, but the graphics
 	  resolution can be selected in U-Boot.
 
+config VIDEO_ILI9341
+	bool "Enable Ilitek ili9341 SPI video panels"
+	depends on DM_VIDEO
+	help
+	  This enables support for Ilitek 9341 video panels connected via SPI.
+
 config VIDEO_IVYBRIDGE_IGD
 	bool "Enable Intel Ivybridge integration graphics support"
 	depends on X86
