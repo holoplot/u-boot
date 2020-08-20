@@ -42,6 +42,12 @@ config LED_CORTINA
 	  This option enables support for LEDs connected to the Cortina
 	  Access CAxxxx SOCs.
 
+config LED_TLC591XX
+	bool "LED Support for TI TLC591xx"
+	depends on LED && DM_I2C
+	help
+	  This option enables support for TI TLC591xx LED drivers on I2C
+	  busses.
 
 config LED_BLINK
 	bool "Support LED blinking"
