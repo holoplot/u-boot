@@ -268,6 +268,7 @@ static int video_post_probe(struct udevice *dev)
 		return -ENOMEM;
 	if (priv->vidconsole_drv_name)
 		drv_name = priv->vidconsole_drv_name;
+#if 0
 	ret = device_bind_driver(dev, drv_name, str, &cons);
 	if (ret) {
 		debug("%s: Cannot bind console driver\n", __func__);
@@ -279,6 +280,7 @@ static int video_post_probe(struct udevice *dev)
 		debug("%s: Cannot probe console driver\n", __func__);
 		return ret;
 	}
+#endif
 
 	return 0;
 };
