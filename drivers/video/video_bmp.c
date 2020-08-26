@@ -292,7 +292,7 @@ int video_bmp_display(struct udevice *dev, ulong bmp_image, int x, int y,
 				if (bpix == 8) {
 					fb_put_byte(&fb, &bmap);
 				} else if (bpix == 16) {
-					*(uint16_t *)fb = cmap_base[*bmap];
+					*(uint16_t *)fb = cpu_to_be16(cmap_base[*bmap]);
 					bmap++;
 					fb += sizeof(uint16_t) / sizeof(*fb);
 				} else {
