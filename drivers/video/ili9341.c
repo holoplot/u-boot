@@ -38,10 +38,11 @@
 struct ili9341_priv {
 	struct gpio_desc dc;
 	bool late_probed;
+	bool is_st7789s_variant;
 };
 
 static int ili9341_write(struct udevice *dev, uint8_t cmd,
-			 const uint8_t *params, size_t params_len)
+			const uint8_t *params, size_t params_len, uint8_t *din)
 {
 	struct ili9341_priv *priv = dev_get_priv(dev);
 	unsigned long flags = SPI_XFER_BEGIN;
@@ -61,7 +62,7 @@ static int ili9341_write(struct udevice *dev, uint8_t cmd,
 
 	if (params_len > 0) {
 		dm_gpio_set_value(&priv->dc, true);
-		ret = dm_spi_xfer(dev, params_len * 8, params, NULL, SPI_XFER_END);
+		ret = dm_spi_xfer(dev, params_len * 8, params, din, SPI_XFER_END);
 		if (ret < 0)
 			goto out;
 	}
@@ -75,26 +76,43 @@ out:
 #define ili9341_command(dev, cmd, seq...)			\
 ({								\
 	u8 params[] = { seq };					\
-	ili9341_write(dev, cmd, params, ARRAY_SIZE(params));	\
+	ili9341_write(dev, cmd, params, ARRAY_SIZE(params), NULL);	\
 })
+
+static bool ili9341_is_st7789s_variant(struct udevice *dev)
+{
+	uint8_t id[4] = {0, 0, 0, 0};
+	ili9341_write(dev, MIPI_DCS_GET_DISPLAY_ID, id, ARRAY_SIZE(id), id);
+
+	printk("ID Expexted: %02x %02x %02x %02x\n", 0x00, 0x85, 0x85, 0x52);
+	printk("ID:          %02x %02x %02x %02x\n", id[0], id[1], id[2], id[3]);
+
+									// 0x85          0x85             0x52
+	return /*id[0] == 0x04 &&*/ id[1] == 0x04 && id[2] == 0x21 && id[3] == 0x54;
+}
 
 static struct udevice *ili9341 = NULL;
 
 static int ili9341_init(struct udevice *dev)
 {
 	struct video_priv *uc_priv = dev_get_uclass_priv(dev);
+	struct ili9341_priv *priv = dev_get_priv(dev);
+	char *s;
+	
 	uint8_t addr_mode;
 	int ret;
 
-dev_err(dev, "%s() :%d\n", __func__, __LINE__);
+	printk("#### %s\n", __func__);
+
 	ret = ili9341_command(dev, MIPI_DCS_SOFT_RESET);
 	if (ret < 0) {
 		dev_err(dev, "Error resetting display: %d\n", ret);
 		return ret;
 	}
-dev_err(dev, "%s() :%d\n", __func__, __LINE__);
 
 	mdelay(120);
+
+	//priv->is_st7789s_variant = ili9341_is_st7789s_variant(dev);
 
 	ili9341_command(dev, MIPI_DCS_SET_DISPLAY_OFF);
 
@@ -139,22 +157,53 @@ dev_err(dev, "%s() :%d\n", __func__, __LINE__);
 	ili9341_command(dev, MIPI_DCS_SET_DISPLAY_ON);
 	mdelay(100);
 
-	switch (uc_priv->rot) {
-	default:
-		addr_mode = ILI9341_MADCTL_MX;
-		break;
-	case 90:
-		addr_mode = ILI9341_MADCTL_MV;
-		break;
-	case 180:
-		addr_mode = ILI9341_MADCTL_MY;
-		break;
-	case 270:
-		addr_mode = ILI9341_MADCTL_MV | ILI9341_MADCTL_MY |
-			    ILI9341_MADCTL_MX;
-		break;
+
+	priv->is_st7789s_variant = ili9341_is_st7789s_variant(dev);
+
+	printk("##### Checking display variant\n");
+	if (priv->is_st7789s_variant) {
+		printk("#### Detected: st7789s\n");
+		
+		s = env_get("addr_mode");
+		if (s) {
+			ulong addr = simple_strtol(s, NULL, 16);
+			printf("Displaying BMP @%lx\n", addr);
+			addr_mode = (uint8_t)(addr);
+		}
+		
+		uc_priv->xsize = 240;
+		uc_priv->ysize = 320;
+		uc_priv->rot = 270;
+		uc_priv->bpix = VIDEO_BPP16;
+
+	} else {
+		printk("##### Detected: ili9341\n");
+		
+		uc_priv->xsize = 320;
+		uc_priv->ysize = 240;
+		uc_priv->rot = 270;
+		uc_priv->bpix = VIDEO_BPP16;
+
+		switch (uc_priv->rot) {
+		default:
+			addr_mode = ILI9341_MADCTL_MX;
+			break;
+		case 90:
+			addr_mode = ILI9341_MADCTL_MV;
+			break;
+		case 180:
+			addr_mode = ILI9341_MADCTL_MY;
+			break;
+		case 270:
+			addr_mode = ILI9341_MADCTL_MV | ILI9341_MADCTL_MY |
+					ILI9341_MADCTL_MX;
+			break;
+		}
+		
+		addr_mode |= ILI9341_MADCTL_BGR;
 	}
-	addr_mode |= ILI9341_MADCTL_BGR;
+
+	printk("#### Writing addr_mode=0x%02x\n", addr_mode);
 	ili9341_command(dev, MIPI_DCS_SET_ADDRESS_MODE, addr_mode);
 
 	return 0;
@@ -165,6 +214,8 @@ static int ili9341_late_probe(struct udevice *dev)
 	struct ili9341_priv *priv = dev_get_priv(dev);
 	struct gpio_desc reset;
 	int ret;
+
+	printk("#### %s\n", __func__);
 
 	if (priv->late_probed)
 		return 0;
@@ -188,7 +239,6 @@ static int ili9341_late_probe(struct udevice *dev)
 	}
 
 	dm_gpio_set_value(&reset, 1);
-	ili9341_init(dev);
 
 	priv->late_probed = true;
 
@@ -198,11 +248,19 @@ static int ili9341_late_probe(struct udevice *dev)
 static int ili9341_sync(struct udevice *dev)
 {
 	struct video_priv *uc_priv = dev_get_uclass_priv(dev);
+	struct ili9341_priv *priv = dev_get_priv(dev);
 	uint8_t *fb = uc_priv->fb;
 
-	ili9341_command(dev, MIPI_DCS_SET_COLUMN_ADDRESS, 0, 0, uc_priv->xsize >> 8, uc_priv->xsize & 0xff);
-	ili9341_command(dev, MIPI_DCS_SET_PAGE_ADDRESS, 0, 0, uc_priv->ysize >> 8, uc_priv->ysize & 0xff);
-	ili9341_write(dev, MIPI_DCS_WRITE_MEMORY_START, fb, uc_priv->fb_size);
+	//if (priv->is_st7789s_variant) {
+	//	ili9341_command(dev, MIPI_DCS_SET_COLUMN_ADDRESS, 0, 0, uc_priv->ysize >> 8, uc_priv->ysize & 0xff);
+	//	ili9341_command(dev, MIPI_DCS_SET_PAGE_ADDRESS, 0, 0, uc_priv->xsize >> 8, uc_priv->xsize & 0xff);
+	//} else {
+		ili9341_command(dev, MIPI_DCS_SET_COLUMN_ADDRESS, 0, 0, uc_priv->xsize >> 8, uc_priv->xsize & 0xff);
+		ili9341_command(dev, MIPI_DCS_SET_PAGE_ADDRESS, 0, 0, uc_priv->ysize >> 8, uc_priv->ysize & 0xff);
+	//}
+	
+	
+	ili9341_write(dev, MIPI_DCS_WRITE_MEMORY_START, fb, uc_priv->fb_size, NULL);
 
 	return 0;
 }
@@ -214,12 +272,21 @@ static int do_ili9341(cmd_tbl_t *cmdtp, int flag, int argc,
 	struct video_priv *uc_priv = dev_get_uclass_priv(dev);
 	char *s;
 
+	printk("##### DO ILI9341 1:\n\n\n");
+
+
 	if (!dev) {
 		printf("ERROR: ili9341 device not probed\n");
 		return 1;
 	}
 
+	printk("##### DO ILI9341 2:\n\n\n");
+
 	ili9341_late_probe(dev);
+	ili9341_init(dev);
+
+	
+
 
 	s = env_get("bmp_addr");
 	if (s) {
@@ -241,6 +308,8 @@ static int ili9341_probe(struct udevice *dev)
 	struct video_uc_platdata *plat = dev_get_uclass_platdata(dev);
 	struct video_priv *uc_priv = dev_get_uclass_priv(dev);
 	struct ili9341_priv *priv = dev_get_priv(dev);
+
+	printk("#### %s\n", __func__);
 
 	uc_priv->xsize = 320;
 	uc_priv->ysize = 240;
