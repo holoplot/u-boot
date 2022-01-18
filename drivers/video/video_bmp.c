@@ -186,7 +186,7 @@ static void video_set_cmap(struct udevice *dev,
 }
 
 int video_bmp_display(struct udevice *dev, ulong bmp_image, int x, int y,
-		      bool align)
+		      bool align, bool swap_axes)
 {
 	struct video_priv *priv = dev_get_uclass_priv(dev);
 	ushort *cmap_base = NULL;
@@ -282,6 +282,12 @@ int video_bmp_display(struct udevice *dev, ulong bmp_image, int x, int y,
 			break;
 		}
 #endif
+		if (swap_axes) {
+			unsigned long tmpwh = width;
+			width = height;
+			height = tmpwh;
+		}
+		
 		byte_width = width * (bpix / 8);
 		if (!byte_width)
 			byte_width = width;

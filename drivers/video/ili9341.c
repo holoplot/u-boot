@@ -38,10 +38,11 @@
 struct ili9341_priv {
 	struct gpio_desc dc;
 	bool late_probed;
+	bool is_st7789s_variant;
 };
 
 static int ili9341_write(struct udevice *dev, uint8_t cmd,
-			 const uint8_t *params, size_t params_len)
+	const uint8_t *params, size_t params_len, uint8_t *din)
 {
 	struct ili9341_priv *priv = dev_get_priv(dev);
 	unsigned long flags = SPI_XFER_BEGIN;
@@ -61,7 +62,7 @@ static int ili9341_write(struct udevice *dev, uint8_t cmd,
 
 	if (params_len > 0) {
 		dm_gpio_set_value(&priv->dc, true);
-		ret = dm_spi_xfer(dev, params_len * 8, params, NULL, SPI_XFER_END);
+		ret = dm_spi_xfer(dev, params_len * 8, params, din, SPI_XFER_END);
 		if (ret < 0)
 			goto out;
 	}
@@ -75,24 +76,34 @@ out:
 #define ili9341_command(dev, cmd, seq...)			\
 ({								\
 	u8 params[] = { seq };					\
-	ili9341_write(dev, cmd, params, ARRAY_SIZE(params));	\
+	ili9341_write(dev, cmd, params, ARRAY_SIZE(params), NULL);	\
 })
+
+static bool ili9341_is_st7789s_variant(struct udevice *dev)
+{
+	uint8_t id[4];
+	ili9341_write(dev, MIPI_DCS_GET_DISPLAY_ID, id, ARRAY_SIZE(id), id);
+
+	// Note: According to the datasheet, we would expect 0x85 0x85 0x52
+	//       here. But we read 0x04 0x21 0x54, so thats what's used.	
+	return id[1] == 0x04 && id[2] == 0x21 && id[3] == 0x54;
+}
 
 static struct udevice *ili9341 = NULL;
 
 static int ili9341_init(struct udevice *dev)
 {
 	struct video_priv *uc_priv = dev_get_uclass_priv(dev);
+	struct ili9341_priv *priv = dev_get_priv(dev);
+
 	uint8_t addr_mode;
 	int ret;
 
-dev_err(dev, "%s() :%d\n", __func__, __LINE__);
 	ret = ili9341_command(dev, MIPI_DCS_SOFT_RESET);
 	if (ret < 0) {
 		dev_err(dev, "Error resetting display: %d\n", ret);
 		return ret;
 	}
-dev_err(dev, "%s() :%d\n", __func__, __LINE__);
 
 	mdelay(120);
 
@@ -154,7 +165,19 @@ dev_err(dev, "%s() :%d\n", __func__, __LINE__);
 			    ILI9341_MADCTL_MX;
 		break;
 	}
-	addr_mode |= ILI9341_MADCTL_BGR;
+
+	priv->is_st7789s_variant = ili9341_is_st7789s_variant(dev);
+
+	if (priv->is_st7789s_variant) {
+		printf("Display Variant: st7789s\n");
+		env_set("display_variant", "st7789s");
+		addr_mode = ILI9341_MADCTL_MY | ILI9341_MADCTL_MX;
+	} else {
+		printf("Display Variant: ili9341\n");	
+		env_set("display_variant", "ili9341");
+		addr_mode |= ILI9341_MADCTL_BGR;
+	}
+
 	ili9341_command(dev, MIPI_DCS_SET_ADDRESS_MODE, addr_mode);
 
 	return 0;
@@ -202,7 +225,7 @@ static int ili9341_sync(struct udevice *dev)
 
 	ili9341_command(dev, MIPI_DCS_SET_COLUMN_ADDRESS, 0, 0, uc_priv->xsize >> 8, uc_priv->xsize & 0xff);
 	ili9341_command(dev, MIPI_DCS_SET_PAGE_ADDRESS, 0, 0, uc_priv->ysize >> 8, uc_priv->ysize & 0xff);
-	ili9341_write(dev, MIPI_DCS_WRITE_MEMORY_START, fb, uc_priv->fb_size);
+	ili9341_write(dev, MIPI_DCS_WRITE_MEMORY_START, fb, uc_priv->fb_size, NULL);
 
 	return 0;
 }
@@ -212,6 +235,7 @@ static int do_ili9341(cmd_tbl_t *cmdtp, int flag, int argc,
 {
 	struct udevice *dev = ili9341;
 	struct video_priv *uc_priv = dev_get_uclass_priv(dev);
+	struct ili9341_priv *priv = dev_get_priv(dev);
 	char *s;
 
 	if (!dev) {
@@ -227,7 +251,7 @@ static int do_ili9341(cmd_tbl_t *cmdtp, int flag, int argc,
 		printf("Displaying BMP @%lx\n", bmp_addr);
 		uc_priv->fb = (uint8_t *) bmp_addr + 0x1000000;
 
-		video_bmp_display(dev, bmp_addr, 0, 0, false);
+		video_bmp_display(dev, bmp_addr, 0, 0, false, priv->is_st7789s_variant);
 		ili9341_sync(dev);
 	}
 

@@ -163,10 +163,11 @@ void video_sync_all(void);
  *		- if a coordinate is -ve then it will be offset to the
  *		  left/top of the centre by that many pixels
  *		- if a coordinate is positive it will be used unchnaged.
+ * @swap_axes: Swaps X and Y axes of the image if true.
  * @return 0 if OK, -ve on error
  */
 int video_bmp_display(struct udevice *dev, ulong bmp_image, int x, int y,
-		      bool align);
+		      bool align, bool swap_axes);
 
 /**
  * video_get_xsize() - Get the width of the display in pixels
