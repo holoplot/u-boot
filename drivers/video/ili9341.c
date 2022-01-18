@@ -167,23 +167,12 @@ static int ili9341_init(struct udevice *dev)
 		s = env_get("addr_mode");
 		if (s) {
 			ulong addr = simple_strtol(s, NULL, 16);
-			printf("Displaying BMP @%lx\n", addr);
 			addr_mode = (uint8_t)(addr);
 		}
-		
-		uc_priv->xsize = 240;
-		uc_priv->ysize = 320;
-		uc_priv->rot = 270;
-		uc_priv->bpix = VIDEO_BPP16;
 
 	} else {
 		printk("##### Detected: ili9341\n");
-		
-		uc_priv->xsize = 320;
-		uc_priv->ysize = 240;
-		uc_priv->rot = 270;
-		uc_priv->bpix = VIDEO_BPP16;
-
+	
 		switch (uc_priv->rot) {
 		default:
 			addr_mode = ILI9341_MADCTL_MX;
@@ -250,6 +239,7 @@ static int ili9341_sync(struct udevice *dev)
 	struct video_priv *uc_priv = dev_get_uclass_priv(dev);
 	struct ili9341_priv *priv = dev_get_priv(dev);
 	uint8_t *fb = uc_priv->fb;
+	int i;
 
 	//if (priv->is_st7789s_variant) {
 	//	ili9341_command(dev, MIPI_DCS_SET_COLUMN_ADDRESS, 0, 0, uc_priv->ysize >> 8, uc_priv->ysize & 0xff);
@@ -271,6 +261,8 @@ static int do_ili9341(cmd_tbl_t *cmdtp, int flag, int argc,
 	struct udevice *dev = ili9341;
 	struct video_priv *uc_priv = dev_get_uclass_priv(dev);
 	char *s;
+	int i;
+	uint16_t *ptr;
 
 	printk("##### DO ILI9341 1:\n\n\n");
 
@@ -293,10 +285,31 @@ static int do_ili9341(cmd_tbl_t *cmdtp, int flag, int argc,
 		ulong bmp_addr = simple_strtol(s, NULL, 16);
 		printf("Displaying BMP @%lx\n", bmp_addr);
 		uc_priv->fb = (uint8_t *) bmp_addr + 0x1000000;
+		ptr = (uint16_t *)uc_priv->fb;
 
-		video_bmp_display(dev, bmp_addr, 0, 0, false);
+		//video_bmp_display(dev, bmp_addr, 0, 0, false);
+		for (i=0; i<uc_priv->xsize; i++) {
+			*ptr = 0xf800;
+			ptr++;
+		}
+
+		for (i=0; i<uc_priv->ysize-2; i++) {
+			*ptr = 0xf800;
+			ptr += uc_priv->xsize-1;
+			*ptr = 0xf800;
+			ptr++;
+		}
+
+		for (i=0; i<uc_priv->xsize; i++) {
+			*ptr = 0xf800;
+			ptr++;
+		}
+
 		ili9341_sync(dev);
 	}
+
+
+
 
 	return 0;
 }
