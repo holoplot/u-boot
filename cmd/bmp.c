@@ -260,7 +260,7 @@ int bmp_display(ulong addr, int x, int y)
 		    y == BMP_ALIGN_CENTER)
 			align = true;
 
-		ret = video_bmp_display(dev, addr, x, y, align);
+		ret = video_bmp_display(dev, addr, x, y, align, false);
 	}
 #elif defined(CONFIG_LCD)
 	ret = lcd_display_bitmap(addr, x, y);
