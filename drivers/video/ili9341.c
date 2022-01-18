@@ -311,9 +311,9 @@ static int ili9341_probe(struct udevice *dev)
 
 	printk("#### %s\n", __func__);
 
-	uc_priv->xsize = 240;
-	uc_priv->ysize = 320;
-	uc_priv->rot = 0;
+	uc_priv->xsize = 320;
+	uc_priv->ysize = 240;
+	uc_priv->rot = 270;
 	uc_priv->bpix = VIDEO_BPP16;
 
 	plat->size = uc_priv->xsize * uc_priv->ysize * 2;
