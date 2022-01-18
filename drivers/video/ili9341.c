@@ -287,7 +287,6 @@ static int do_ili9341(cmd_tbl_t *cmdtp, int flag, int argc,
 		uc_priv->fb = (uint8_t *) bmp_addr + 0x1000000;
 		ptr = (uint16_t *)uc_priv->fb;
 
-		//video_bmp_display(dev, bmp_addr, 0, 0, false);
 		for (i=0; i<uc_priv->xsize; i++) {
 			*ptr = 0xf800;
 			ptr++;
@@ -304,7 +303,10 @@ static int do_ili9341(cmd_tbl_t *cmdtp, int flag, int argc,
 			*ptr = 0xf800;
 			ptr++;
 		}
+		ili9341_sync(dev);
 
+		mdelay(2000);
+		video_bmp_display(dev, bmp_addr, 0, 0, false);
 		ili9341_sync(dev);
 	}
 

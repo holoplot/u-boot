@@ -195,7 +195,7 @@ int video_bmp_display(struct udevice *dev, ulong bmp_image, int x, int y,
 	struct bmp_image *bmp = map_sysmem(bmp_image, 0);
 	uchar *bmap;
 	ushort padded_width;
-	unsigned long width, height, byte_width;
+	unsigned long width, height, byte_width, tmpwh;
 	unsigned long pwidth = priv->xsize;
 	unsigned colours, bpix, bmp_bpix;
 	struct bmp_color_table_entry *palette;
@@ -282,6 +282,12 @@ int video_bmp_display(struct udevice *dev, ulong bmp_image, int x, int y,
 			break;
 		}
 #endif
+		// Swap X / Y
+		tmpwh = width;
+		width = height;
+		height = tmpwh;
+		
+		
 		byte_width = width * (bpix / 8);
 		if (!byte_width)
 			byte_width = width;
