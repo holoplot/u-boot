@@ -250,7 +250,8 @@ static int do_ili9341(cmd_tbl_t *cmdtp, int flag, int argc,
 		ulong bmp_addr = simple_strtol(s, NULL, 16);
 		printf("Displaying BMP @%lx\n", bmp_addr);
 		uc_priv->fb = (uint8_t *) bmp_addr + 0x1000000;
-
+		uc_priv->colour_bg = 0x00;
+		video_clear(dev);
 		video_bmp_display(dev, bmp_addr, 0, 0, false, priv->is_st7789s_variant);
 		ili9341_sync(dev);
 	}
