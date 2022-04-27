@@ -204,7 +204,10 @@
 #ifndef CONFIG_EXTRA_ENV_SETTINGS
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	ENV_MEM_LAYOUT_SETTINGS \
-	BOOTENV
+	BOOTENV \
+	"bootenv=uEnv.txt\0" \
+	"loadbootenv_addr=0x2000000\0" \
+	"distro_bootcmd=load mmc 0 ${loadbootenv_addr} ${bootenv}; env import -t ${loadbootenv_addr} $filesize; run uenvcmd;\0"
 #endif
 
 /* SPL can't handle all huge variables - define just DFU */
