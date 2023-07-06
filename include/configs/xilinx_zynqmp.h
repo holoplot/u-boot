@@ -206,7 +206,7 @@
 	ENV_MEM_LAYOUT_SETTINGS \
 	BOOTENV \
 	"bootenv=uEnv.txt\0" \
-	"loadbootenv_addr=0x2000000\0" \
+	"loadbootenv_addr=0x10000000\0" \
 	"distro_bootcmd=load mmc 0 ${loadbootenv_addr} ${bootenv}; env import -t ${loadbootenv_addr} $filesize; run uenvcmd;\0"
 #endif
 
